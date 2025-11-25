@@ -1,4 +1,4 @@
-package com.java.project.portfolio_pilot.Model;
+package com.java.project.portfolio_pilot.model;
 
 import java.math.BigDecimal;
 
