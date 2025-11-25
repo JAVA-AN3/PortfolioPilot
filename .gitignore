@@ -1,0 +1,29 @@
+# --- Global Ignores ---
+
+# VS Code (Setarile tale personale, nu intereseaza pe nimeni altcineva)
+.vscode/
+
+# Fisiere de sistem (Mac/Windows)
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# --- Backend Ignores ---
+# Aici ignoram output-ul de compilare Java
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDE files (Eclipse/IntelliJ)
+**/.idea/
+**/*.iml
+**/.classpath
+**/.project
+**/.settings/
+
+# --- Frontend Ignores ---
+**/node_modules/
+**/build/
+**/dist/
+**/.env.local
