@@ -1,22 +1,32 @@
 package com.java.project.portfolio_pilot.controller;
 
+import com.java.project.portfolio_pilot.dto.LoginRequestDTO;
 import com.java.project.portfolio_pilot.dto.UserRegistrationDTO;
 import com.java.project.portfolio_pilot.model.User;
+import com.java.project.portfolio_pilot.repository.UserRepository;
+import com.java.project.portfolio_pilot.security.JwtUtils;
 import com.java.project.portfolio_pilot.service.UserService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, UserRepository userRepository, 
+                          PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
         this.userService = userService;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     /**
@@ -33,5 +43,29 @@ public class AuthController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    /**
+     * Authenticates a user and issues a JWT token.
+     *
+     * @param loginRequest The login credentials.
+     * @return A JWT token if authentication is successful, or 401 Unauthorized otherwise.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> loginUser(@RequestBody LoginRequestDTO loginRequest) {
+        // Retrieve user by username to verify existence
+        Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
+
+        // Validate credentials: user must exist and password hash must match
+        if (userOptional.isPresent() && 
+            passwordEncoder.matches(loginRequest.getPassword(), userOptional.get().getPassword())) {
+            
+            // Generate JWT token for the authenticated session
+            String token = jwtUtils.generateToken(userOptional.get().getUsername());
+            
+            return ResponseEntity.ok(token);
+        }
+
+        return ResponseEntity.status(401).body("Invalid username or password");
     }
 }
