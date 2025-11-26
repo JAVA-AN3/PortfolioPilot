@@ -1,5 +1,7 @@
 package com.java.project.portfolio_pilot.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -12,10 +14,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource; 
 
-import com.java.project.portfolio_pilot.security.JwtAuthenticationFilter;
-import com.java.project.portfolio_pilot.security.services.UserDetailsServiceImpl;
+import com.java.project.portfolio_pilot.security.JwtAuthenticationFilter; 
+import com.java.project.portfolio_pilot.security.services.UserDetailsServiceImpl; 
 
+// Security configuration class
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -23,21 +29,19 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsServiceImpl userDetailsService;
 
-    // 1. Constructor Injection for dependencies
+    // Constructor injection of dependencies
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           UserDetailsServiceImpl userDetailsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
     }
 
-    // 2. Password Encoder Bean using BCrypt(algorithm)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 3. Provider that uses our UserDetailsService and PasswordEncoder
-    // It tells Spring Security how to load user details and how to verify passwords
+    // Authentication provider bean
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
@@ -45,34 +49,53 @@ public class SecurityConfig {
         return authProvider;
     }
     
-    // 4. AuthenticationManager - used for authenticating user credentials
+    // Authentication manager bean
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    // 5. Security Filter Chain - defines security policies
+    // Security filter chain configuration
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // we disable CSRF for simplicity     
+            .csrf(csrf -> csrf.disable())
             
-            // No session will be created or used by Spring Security
+            // CORS configuration
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
+          
+
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            
-            // Define URL authorization rules
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/**").permitAll() // allow auth endpoints
-                .anyRequest().authenticated() // all other requests need authentication
+                .requestMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated()
             );
 
-        // Set our custom authentication provider
         http.authenticationProvider(authenticationProvider());
-
-        // Add our JWT filter before the UsernamePasswordAuthenticationFilter
-        // This ensures JWT validation happens before Spring Security processes authentication
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
+    }
+
+    // Definition of CORS configuration
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Permision of origins from frontend application localhost 3000
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); 
+        
+        // Allowed HTTP methods
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        
+        // Allowed headers
+        configuration.setAllowedHeaders(List.of("*"));
+        
+        // Allow credentials such as cookies, authorization headers, or TLS client certificates
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
