@@ -1,16 +1,20 @@
 package com.java.project.portfolio_pilot.controller;
 
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.java.project.portfolio_pilot.dto.LoginRequestDTO;
 import com.java.project.portfolio_pilot.dto.UserRegistrationDTO;
 import com.java.project.portfolio_pilot.model.User;
 import com.java.project.portfolio_pilot.repository.UserRepository;
 import com.java.project.portfolio_pilot.security.JwtUtils;
 import com.java.project.portfolio_pilot.service.UserService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
