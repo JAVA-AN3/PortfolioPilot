@@ -1,5 +1,6 @@
 package com.java.project.portfolio_pilot.service;
 
+import com.java.project.portfolio_pilot.dto.AddHoldingRequestDTO;
 import com.java.project.portfolio_pilot.dto.HoldingDTO;
 import com.java.project.portfolio_pilot.dto.PortfolioDashboardDTO;
 import com.java.project.portfolio_pilot.model.Holding;
@@ -154,5 +155,35 @@ public class PortfolioService {
         }
 
         return dashboard;
-    }    
+    }
+
+    /**
+     * Adds a new stock holding to the user's portfolio.
+     */
+    @Transactional
+    public void addHoldingToPortfolio(String username, AddHoldingRequestDTO request) {
+        // Identify the user
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Find user portfolio (create if missing, though it should exist by now)
+        Portfolio portfolio = portfolioRepository.findByUserId(user.getId())
+                .stream()
+                .findFirst()
+                .orElseGet(() -> createNewPortfolio(user));
+        
+        // Create the new Holding entity
+        Holding newHolding = new Holding();
+        newHolding.setStockTicker(request.getTicker().toUpperCase());
+        newHolding.setQuantity(request.getQuantity());
+        newHolding.setAverageBuyPrice(request.getPrice());
+        newHolding.setPortfolio(portfolio);
+
+        // Save to database
+        holdingRepository.save(newHolding);
+
+        logger.info("Successfully added {} shares of {} to user {}'s portfolio",
+            request.getQuantity(), request.getTicker(), username
+        );
+    }
 }

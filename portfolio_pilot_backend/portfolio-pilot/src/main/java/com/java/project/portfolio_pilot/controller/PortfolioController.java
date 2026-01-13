@@ -2,9 +2,13 @@ package com.java.project.portfolio_pilot.controller;
 
 import com.java.project.portfolio_pilot.dto.PortfolioDashboardDTO;
 import com.java.project.portfolio_pilot.service.PortfolioService;
+import com.java.project.portfolio_pilot.dto.AddHoldingRequestDTO;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+
 
 @RestController
 @RequestMapping("/api/portfolios")
@@ -31,4 +35,19 @@ public class PortfolioController {
         // Delegate to service
         return portfolioService.getPortfolioByUser(currentUsername);
     }
+
+    /**
+     * Endpoint to add a new investment.
+     * POST /api/portfolios/holdings
+     */
+    @PostMapping("/holdings")
+    public void addHolding(@RequestBody AddHoldingRequestDTO request) {
+        // Get current user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        
+        // Delegate to service
+        portfolioService.addHoldingToPortfolio(currentUsername, request);
+    }
+    
 }
