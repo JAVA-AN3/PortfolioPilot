@@ -1,28 +1,113 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import StatCard from '../components/StatCard';
 
-// Putem lasa ActivityItem aici momentan sau il putem muta si pe el in components
-const ActivityItem = ({ stock, action, amount }) => (
-  <div className="flex justify-between items-center p-3 hover:bg-gray-800/50 rounded-lg transition">
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-white">
-        {stock[0]}
+/**
+ * Component for displaying a single row in the Holdings list.
+ * Replaces the static "ActivityItem" with real portfolio data.
+ */
+const HoldingItem = ({ ticker, quantity, price, value, profit, profitPercent }) => {
+  // Determine color based on profit (Green for +, Red for -)
+  const isProfitable = profit >= 0;
+  const colorClass = isProfitable ? 'text-green-400' : 'text-red-400';
+  const profitSign = isProfitable ? '+' : '';
+
+  return (
+    <div className="flex justify-between items-center p-4 hover:bg-gray-800/50 rounded-lg transition border-b border-gray-800/50 last:border-0">
+      <div className="flex items-center gap-4">
+        {/* Ticker Avatar */}
+        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white shadow-md">
+          {ticker}
+        </div>
+        <div>
+          <p className="text-sm font-bold text-white">{ticker}</p>
+          <p className="text-xs text-gray-500">{quantity} Shares @ ${price}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-sm font-bold text-white">{stock}</p>
-        <p className="text-xs text-gray-500">{action}</p>
+      
+      <div className="text-right">
+        <p className="text-sm font-bold text-white">${value.toLocaleString()}</p>
+        <p className={`text-xs ${colorClass}`}>
+          {profitSign}{profit.toLocaleString()} ({profitSign}{profitPercent}%)
+        </p>
       </div>
     </div>
-    <span className={action === 'Bought' ? 'text-green-400 text-sm' : 'text-red-400 text-sm'}>{amount}</span>
-  </div>
-);
+  );
+};
 
 const DashboardPage = () => {
+  const navigate = useNavigate();
+  
+  // --- STATE MANAGEMENT ---
+  // Store the portfolio data from the backend
+  const [portfolio, setPortfolio] = useState(null);
+  // Store loading state (show spinner while fetching)
+  const [loading, setLoading] = useState(true);
+  // Store error messages
+  const [error, setError] = useState('');
+
+  // --- EFFECT: Fetch Data on Load ---
+  useEffect(() => {
+    const fetchPortfolioData = async () => {
+      try {
+        // 1. Get the JWT token from storage
+        const token = localStorage.getItem('jwtToken');
+        
+        // If no token, force logout
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        // 2. Call the Backend API
+        const response = await axios.get('http://localhost:8080/api/portfolios', {
+          headers: {
+            'Authorization': `Bearer ${token}` // Attach the "Badge"
+          }
+        });
+
+        // 3. Save data to state
+        setPortfolio(response.data);
+        setLoading(false);
+
+      } catch (err) {
+        console.error("Failed to fetch portfolio:", err);
+        setError('Failed to load portfolio data.');
+        setLoading(false);
+        
+        // Optional: If 403/401, redirect to login
+        if (err.response && (err.response.status === 403 || err.response.status === 401)) {
+            navigate('/login');
+        }
+      }
+    };
+
+    fetchPortfolioData();
+  }, [navigate]);
+
+  // --- RENDER HELPERS ---
+
+  if (loading) {
+    return <div className="h-screen bg-dashboard-main flex items-center justify-center text-white">Loading Financial Data...</div>;
+  }
+
+  if (error) {
+    return <div className="h-screen bg-dashboard-main flex items-center justify-center text-red-500">{error}</div>;
+  }
+
+  // Use default values if portfolio is null to prevent crashes
+  const data = portfolio || { 
+      totalBalance: 0, 
+      totalProfit: 0, 
+      totalProfitPercentage: 0, 
+      holdings: [] 
+  };
+
   return (
     <div className="flex h-screen bg-dashboard-main text-dashboard-text font-sans overflow-hidden">
       
-      {/* Folosim Componenta Sidebar */}
       <Sidebar />
 
       <main className="flex-1 flex flex-col overflow-y-auto">
@@ -34,29 +119,58 @@ const DashboardPage = () => {
         </header>
 
         <div className="p-8 space-y-6">
+          
+          {/* --- TOP STATS CARDS --- */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Folosim Componenta StatCard */}
-            <StatCard title="Total Balance" value="$12,450.00" trend="+15%" positive />
-            <StatCard title="Total Profit" value="$3,200.50" trend="+5.2%" positive />
-            <StatCard title="Best Performer" value="AAPL" trend="+2.4%" positive />
+            <StatCard 
+                title="Total Balance" 
+                value={`$${data.totalBalance.toLocaleString()}`} 
+                trend={data.totalProfitPercentage >= 0 ? "+Active" : "-Loss"} 
+                positive={true} 
+            />
+            <StatCard 
+                title="Total Profit" 
+                value={`$${data.totalProfit.toLocaleString()}`} 
+                trend={`${data.totalProfitPercentage}%`} 
+                positive={data.totalProfit >= 0} 
+            />
+            {/* Placeholder for Best Performer logic (can be computed later) */}
+            <StatCard title="Total Invested" value={`$${data.totalInvested.toLocaleString()}`} trend="Cost Basis" positive />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
+            
+            {/* --- LEFT: CHART PLACEHOLDER --- */}
             <div className="lg:col-span-2 bg-dashboard-card rounded-2xl p-6 border border-gray-800 shadow-xl">
               <h3 className="text-lg font-semibold mb-4 text-white">Portfolio Growth</h3>
               <div className="w-full h-64 bg-dashboard-main/50 rounded-xl flex items-center justify-center border border-dashed border-gray-700 text-dashboard-muted">
-                [ Chart Placeholder ]
+                [ Chart Logic Coming Soon ]
               </div>
             </div>
 
-            <div className="bg-dashboard-card rounded-2xl p-6 border border-gray-800 shadow-xl">
-              <h3 className="text-lg font-semibold mb-4 text-white">Recent Activity</h3>
-              <div className="space-y-4">
-                <ActivityItem stock="TSLA" action="Bought" amount="+$240" />
-                <ActivityItem stock="BTC" action="Sold" amount="-$1,200" />
-                <ActivityItem stock="NVDA" action="Bought" amount="+$560" />
+            {/* --- RIGHT: HOLDINGS LIST (The Rows from Spreadsheet) --- */}
+            <div className="bg-dashboard-card rounded-2xl p-6 border border-gray-800 shadow-xl overflow-hidden flex flex-col">
+              <h3 className="text-lg font-semibold mb-4 text-white">Your Holdings</h3>
+              
+              <div className="overflow-y-auto pr-2 space-y-2">
+                {data.holdings.length === 0 ? (
+                    <p className="text-gray-500 text-center py-4">No investments yet.</p>
+                ) : (
+                    data.holdings.map((holding, index) => (
+                        <HoldingItem 
+                            key={index}
+                            ticker={holding.ticker}
+                            quantity={holding.quantity}
+                            price={holding.averagePrice}
+                            value={holding.marketValue}
+                            profit={holding.totalProfitLoss}
+                            profitPercent={holding.profitLossPercentage}
+                        />
+                    ))
+                )}
               </div>
             </div>
+
           </div>
         </div>
       </main>
