@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import StatCard from "../components/StatCard";
 import AddAssetModal from "../components/AddAssetModal";
+import PortfolioChart from '../components/PortfolioChart';
 
 /**
  * Component for displaying a single row in the Holdings list.
@@ -182,12 +183,10 @@ const DashboardPage = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-96">
             {/* --- LEFT: CHART PLACEHOLDER --- */}
-            <div className="lg:col-span-2 bg-dashboard-card rounded-2xl p-6 border border-gray-800 shadow-xl">
-              <h3 className="text-lg font-semibold mb-4 text-white">
-                Portfolio Growth
-              </h3>
-              <div className="w-full h-64 bg-dashboard-main/50 rounded-xl flex items-center justify-center border border-dashed border-gray-700 text-dashboard-muted">
-                [ Chart Logic Coming Soon ]
+            <div className="lg:col-span-2 bg-dashboard-card rounded-2xl p-6 border border-gray-800 shadow-xl flex flex-col">
+              <h3 className="text-lg font-semibold mb-4 text-white">Asset Allocation</h3>
+              <div className="flex-1 w-full min-h-[300px]">
+                 <PortfolioChart holdings={data.holdings} />
               </div>
             </div>
 
