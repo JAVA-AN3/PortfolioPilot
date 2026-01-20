@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
-import EditAssetModal from '../components/EditAssetModal';
-import { Trash2, Edit2, Save, X } from "lucide-react";
+import EditAssetModal from "../components/EditAssetModal";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import { Trash2, Edit2 } from "lucide-react";
 
 const MyPortfolioPage = () => {
   const [holdings, setHoldings] = useState([]);
@@ -11,6 +12,10 @@ const MyPortfolioPage = () => {
   // --- EDIT MODAL STATE ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedHolding, setSelectedHolding] = useState(null);
+
+  // --- DELETE MODAL STATE (NOU) ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [holdingToDelete, setHoldingToDelete] = useState(null);
 
   // --- FETCH DATA ---
   const fetchHoldings = async () => {
@@ -31,41 +36,47 @@ const MyPortfolioPage = () => {
     fetchHoldings();
   }, []);
 
-  // --- DELETE HANDLER ---
-  const handleDelete = async (id, ticker) => {
-    // 1. Confirmation
-    if (!window.confirm(`Are you sure you want to delete ${ticker}?`)) return;
+  // --- HANDLERS ---
+
+  const initiateDelete = (holding) => {
+    setHoldingToDelete(holding);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!holdingToDelete) return;
 
     try {
       const token = localStorage.getItem("jwtToken");
-
-      // 2. Call Backend API
       await axios.delete(
-        `http://localhost:8080/api/portfolios/holdings/${id}`,
+        `http://localhost:8080/api/portfolios/holdings/${holdingToDelete.id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
-      // 3. Optimistic Update (Update UI immediately without reloading page)
-      // We filter out the deleted item from the state
-      setHoldings((prevHoldings) => prevHoldings.filter((h) => h.id !== id));
+      // Optimistic UI update
+      setHoldings((prevHoldings) =>
+        prevHoldings.filter((h) => h.id !== holdingToDelete.id),
+      );
+
+      setIsDeleteModalOpen(false);
+      setHoldingToDelete(null);
     } catch (err) {
       console.error("Failed to delete holding:", err);
       alert("Failed to delete. Please try again.");
     }
   };
 
-  // Triggered when clicking the Pencil icon
+  // --- EDIT HANDLERS ---
   const handleEditClick = (holding) => {
-    setSelectedHolding(holding); // Save the data of the row we clicked
-    setIsEditModalOpen(true);    // Open the window
+    setSelectedHolding(holding);
+    setIsEditModalOpen(true);
   };
 
-  // Triggered when the Modal successfully saves changes
   const handleUpdateSuccess = () => {
     setLoading(true);
-    fetchHoldings(); // Refresh the table to show new values
+    fetchHoldings();
   };
 
   // --- RENDER ---
@@ -123,19 +134,20 @@ const MyPortfolioPage = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right space-x-2">
-
                     {/* EDIT BUTTON */}
-                    <button 
-                        onClick={() => handleEditClick(holding)}
-                        className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition">
-                        <Edit2 size={16} />
+                    <button
+                      onClick={() => handleEditClick(holding)}
+                      className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition"
+                    >
+                      <Edit2 size={16} />
                     </button>
 
                     {/* DELETE BUTTON */}
-                    <button 
-                        onClick={() => handleDelete(holding.id, holding.ticker)}
-                        className="p-2 hover:bg-red-900/30 rounded-lg text-gray-400 hover:text-red-400 transition">
-                        <Trash2 size={16} />
+                    <button
+                      onClick={() => initiateDelete(holding)}
+                      className="p-2 hover:bg-red-900/30 rounded-lg text-gray-400 hover:text-red-400 transition"
+                    >
+                      <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -150,14 +162,23 @@ const MyPortfolioPage = () => {
           )}
         </div>
 
-        {/* --- INJECT EDIT MODAL --- */}
-        <EditAssetModal 
-            isOpen={isEditModalOpen}
-            onClose={() => setIsEditModalOpen(false)}
-            holding={selectedHolding}
-            onUpdateSuccess={handleUpdateSuccess}
+        {/* --- INJECT MODALS --- */}
+
+        {/* Edit Modal */}
+        <EditAssetModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          holding={selectedHolding}
+          onUpdateSuccess={handleUpdateSuccess}
         />
-        
+
+        {/* Delete Confirmation Modal */}
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          ticker={holdingToDelete?.ticker}
+        />
       </main>
     </div>
   );
