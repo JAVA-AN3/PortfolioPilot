@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
+import EditAssetModal from '../components/EditAssetModal';
 import { Trash2, Edit2, Save, X } from "lucide-react";
 
 const MyPortfolioPage = () => {
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingId, setEditingId] = useState(null);
 
-  // Temporary data for editing
-  const [editFormData, setEditFormData] = useState({
-    quantity: "",
-    averagePrice: "",
-  });
+  // --- EDIT MODAL STATE ---
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedHolding, setSelectedHolding] = useState(null);
 
   // --- FETCH DATA ---
   const fetchHoldings = async () => {
@@ -56,6 +54,18 @@ const MyPortfolioPage = () => {
       console.error("Failed to delete holding:", err);
       alert("Failed to delete. Please try again.");
     }
+  };
+
+  // Triggered when clicking the Pencil icon
+  const handleEditClick = (holding) => {
+    setSelectedHolding(holding); // Save the data of the row we clicked
+    setIsEditModalOpen(true);    // Open the window
+  };
+
+  // Triggered when the Modal successfully saves changes
+  const handleUpdateSuccess = () => {
+    setLoading(true);
+    fetchHoldings(); // Refresh the table to show new values
   };
 
   // --- RENDER ---
@@ -113,14 +123,19 @@ const MyPortfolioPage = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right space-x-2">
-                    <button className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition">
-                      <Edit2 size={16} />
+
+                    {/* EDIT BUTTON */}
+                    <button 
+                        onClick={() => handleEditClick(holding)}
+                        className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition">
+                        <Edit2 size={16} />
                     </button>
-                    <button
-                      onClick={() => handleDelete(holding.id, holding.ticker)}
-                      className="p-2 hover:bg-red-900/30 rounded-lg text-gray-400 hover:text-red-400 transition"
-                    >
-                      <Trash2 size={16} />
+
+                    {/* DELETE BUTTON */}
+                    <button 
+                        onClick={() => handleDelete(holding.id, holding.ticker)}
+                        className="p-2 hover:bg-red-900/30 rounded-lg text-gray-400 hover:text-red-400 transition">
+                        <Trash2 size={16} />
                     </button>
                   </td>
                 </tr>
@@ -134,6 +149,15 @@ const MyPortfolioPage = () => {
             </div>
           )}
         </div>
+
+        {/* --- INJECT EDIT MODAL --- */}
+        <EditAssetModal 
+            isOpen={isEditModalOpen}
+            onClose={() => setIsEditModalOpen(false)}
+            holding={selectedHolding}
+            onUpdateSuccess={handleUpdateSuccess}
+        />
+        
       </main>
     </div>
   );
