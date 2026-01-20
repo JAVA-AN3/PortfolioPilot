@@ -48,7 +48,7 @@ const EditAssetModal = ({ isOpen, onClose, holding, onUpdateSuccess }) => {
       // PUT Request to update specific ID
       await axios.put(`http://localhost:8080/api/portfolios/holdings/${holding.id}`, 
         {
-          quantity: parseInt(formData.quantity),
+          quantity: parseFloat(formData.quantity),
           averagePrice: parseFloat(formData.price)
         },
         {
@@ -107,9 +107,10 @@ const EditAssetModal = ({ isOpen, onClose, holding, onUpdateSuccess }) => {
               <input
                 type="number"
                 name="quantity"
+                step="any"
                 value={formData.quantity}
                 onChange={handleChange}
-                min="1"
+                min="0.0000001"
                 className="w-full bg-dashboard-main border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition"
                 required
               />

@@ -25,8 +25,8 @@ public class Holding {
     @Column(nullable = false)
     private String stockTicker; // Ex: AAPL, TSLA, TLV
 
-    @Column(nullable = false)
-    private Integer quantity; // Number of shares held
+    @Column(nullable = false, precision = 19, scale = 6)
+    private BigDecimal quantity; // Number of shares held
 
     // Using big decimal for financial values
     // precision=19, scale=4 means max 19 digits, 4 after decimal point
@@ -45,7 +45,7 @@ public class Holding {
     public Holding() {
     }
 
-    public Holding(String stockTicker, Integer quantity, BigDecimal averageBuyPrice, Portfolio portfolio) {
+    public Holding(String stockTicker, BigDecimal quantity, BigDecimal averageBuyPrice, Portfolio portfolio) {
         this.stockTicker = stockTicker;
         this.quantity = quantity;
         this.averageBuyPrice = averageBuyPrice;
@@ -70,11 +70,11 @@ public class Holding {
         this.stockTicker = stockTicker;
     }
 
-    public Integer getQuantity() {
+    public BigDecimal getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(Integer quantity) {
+    public void setQuantity(BigDecimal quantity) {
         this.quantity = quantity;
     }
 

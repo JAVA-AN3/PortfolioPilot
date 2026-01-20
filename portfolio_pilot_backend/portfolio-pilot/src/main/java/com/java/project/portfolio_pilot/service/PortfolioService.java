@@ -22,22 +22,23 @@ import java.util.List;
 
 /**
  * Service orchestrating the business logic for portfolio management.
- * It aggregates data from the database and external stock APIs to compute real-time performance metrics.
+ * It aggregates data from the database and external stock APIs to compute
+ * real-time performance metrics.
  */
 @Service
 public class PortfolioService {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(PortfolioService.class);
-    
+
     private final PortfolioRepository portfolioRepository;
     private final HoldingRepository holdingRepository;
     private final UserRepository userRepository;
     private final StockMarketService stockMarketService;
 
-    public PortfolioService(PortfolioRepository portfolioRepository, 
-                            HoldingRepository holdingRepository,
-                            UserRepository userRepository,
-                            StockMarketService stockMarketService) {
+    public PortfolioService(PortfolioRepository portfolioRepository,
+            HoldingRepository holdingRepository,
+            UserRepository userRepository,
+            StockMarketService stockMarketService) {
         this.portfolioRepository = portfolioRepository;
         this.holdingRepository = holdingRepository;
         this.userRepository = userRepository;
@@ -95,7 +96,7 @@ public class PortfolioService {
 
             // Fetches live price (external API call)
             BigDecimal currentPrice = stockMarketService.getStockPrice(h.getStockTicker());
-            
+
             if (currentPrice.compareTo(BigDecimal.ZERO) == 0) {
                 logger.warn("Failed to fetch price for ticker: {}. Using buy price as fallback.", h.getStockTicker());
                 currentPrice = h.getAverageBuyPrice();
@@ -105,11 +106,11 @@ public class PortfolioService {
             dto.setCurrentPrice(currentPrice);
 
             // Calculates market value = qty * current price
-            BigDecimal marketValue = currentPrice.multiply(BigDecimal.valueOf(h.getQuantity()));
+            BigDecimal marketValue = currentPrice.multiply(h.getQuantity());
             dto.setMarketValue(marketValue);
 
             // Calculates invested amount = qty * avg price
-            BigDecimal invested = h.getAverageBuyPrice().multiply(BigDecimal.valueOf(h.getQuantity()));
+            BigDecimal invested = h.getAverageBuyPrice().multiply(h.getQuantity());
 
             // Calculates P/L ($) = market value - invested
             dto.setTotalProfitLoss(marketValue.subtract(invested));
@@ -172,7 +173,7 @@ public class PortfolioService {
                 .stream()
                 .findFirst()
                 .orElseGet(() -> createNewPortfolio(user));
-        
+
         // Create the new Holding entity
         Holding newHolding = new Holding();
         newHolding.setStockTicker(request.getTicker().toUpperCase());
@@ -184,16 +185,17 @@ public class PortfolioService {
         holdingRepository.save(newHolding);
 
         logger.info("Successfully added {} shares of {} to user {}'s portfolio",
-            request.getQuantity(), request.getTicker(), username
-        );
+                request.getQuantity(), request.getTicker(), username);
     }
 
     /**
      * Updates an existing holding.
      * Implements a "partial update" strategy: only non-null fields from the DTO
-     * are applied to the entity. This allows the frontend to update just the quantity
+     * are applied to the entity. This allows the frontend to update just the
+     * quantity
      * without sending the price, or vice-versa.
      * * @param holdingId The ID of the holding to update
+     * 
      * @param request The data to update
      */
     @Transactional
@@ -202,12 +204,10 @@ public class PortfolioService {
                 .orElseThrow(() -> new RuntimeException("Holding not found"));
 
         // Update only if values are provided (not null)
-        if (request.getQuantity() != null) {
+        if (request.getQuantity() != null)
             holding.setQuantity(request.getQuantity());
-        }
-        if (request.getAveragePrice() != null) {
+        if (request.getAveragePrice() != null)
             holding.setAverageBuyPrice(request.getAveragePrice());
-        }
 
         holdingRepository.save(holding);
     }

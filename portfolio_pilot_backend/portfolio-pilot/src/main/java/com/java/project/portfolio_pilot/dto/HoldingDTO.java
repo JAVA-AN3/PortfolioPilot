@@ -11,7 +11,7 @@ public class HoldingDTO {
     
     private Long id;
     private String ticker;
-    private Integer quantity;
+    private BigDecimal quantity;
     private BigDecimal averagePrice;
     private BigDecimal currentPrice;
     private BigDecimal marketValue;
@@ -21,7 +21,7 @@ public class HoldingDTO {
     private String warning;
 
     // Constructor, Getters and Setters
-    public HoldingDTO(Long id,String ticker, Integer quantity, BigDecimal averagePrice) {
+    public HoldingDTO(Long id,String ticker, BigDecimal quantity, BigDecimal averagePrice) {
         this.id = id;
         this.ticker = ticker;
         this.quantity = quantity;
@@ -32,8 +32,8 @@ public class HoldingDTO {
     public void setId(Long id) { this.id = id; }
     public String getTicker() { return ticker; }
     public void setTicker(String ticker) { this.ticker = ticker; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
     public BigDecimal getAveragePrice() { return averagePrice; }
     public void setAveragePrice(BigDecimal averagePrice) { this.averagePrice = averagePrice; }
     public BigDecimal getCurrentPrice() { return currentPrice; }

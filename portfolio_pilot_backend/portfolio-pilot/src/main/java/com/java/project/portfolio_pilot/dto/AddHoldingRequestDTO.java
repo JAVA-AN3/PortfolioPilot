@@ -9,15 +9,15 @@ import java.math.BigDecimal;
 public class AddHoldingRequestDTO {
     
     private String ticker;
-    private Integer quantity;
+    private BigDecimal quantity;
     private BigDecimal price;
 
     // --- Getters & Setters ---
     public String getTicker() { return ticker; }
     public void setTicker(String ticker) { this.ticker = ticker; }
     
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public BigDecimal getQuantity() { return quantity; }
+    public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
     
     public BigDecimal getPrice() { return price; }
     public void setPrice(BigDecimal price) { this.price = price; }
