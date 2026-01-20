@@ -3,7 +3,8 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import EditAssetModal from "../components/EditAssetModal";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import { Trash2, Edit2 } from "lucide-react";
+import AddAssetModal from '../components/AddAssetModal';
+import { Trash2, Edit2, Plus } from "lucide-react";
 
 const MyPortfolioPage = () => {
   const [holdings, setHoldings] = useState([]);
@@ -13,9 +14,12 @@ const MyPortfolioPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedHolding, setSelectedHolding] = useState(null);
 
-  // --- DELETE MODAL STATE (NOU) ---
+  // --- DELETE MODAL STATE ---
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [holdingToDelete, setHoldingToDelete] = useState(null);
+
+  // --- ADD MODAL STATE ---
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // --- FETCH DATA ---
   const fetchHoldings = async () => {
@@ -38,6 +42,13 @@ const MyPortfolioPage = () => {
 
   // --- HANDLERS ---
 
+  // REFRESH DATA (Used by Add and Edit modals)
+  const handleDataRefresh = () => {
+    setLoading(true);
+    fetchHoldings();
+  };
+
+  // DELETE LOGIC
   const initiateDelete = (holding) => {
     setHoldingToDelete(holding);
     setIsDeleteModalOpen(true);
@@ -74,22 +85,25 @@ const MyPortfolioPage = () => {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateSuccess = () => {
-    setLoading(true);
-    fetchHoldings();
-  };
-
   // --- RENDER ---
   return (
     <div className="flex h-screen bg-dashboard-main text-dashboard-text font-sans">
       <Sidebar />
 
       <main className="flex-1 p-8 overflow-y-auto">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-white">My Portfolio</h1>
-          <p className="text-gray-400 mt-2">
-            Manage your assets and track performance detail.
-          </p>
+        <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white">My Portfolio</h1>
+            <p className="text-gray-400 mt-2">Manage your assets and track performance detail.</p>
+          </div>
+          
+          <button 
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-lg shadow-blue-500/20 flex items-center gap-2"
+          >
+            <Plus size={18} />
+            New Investment
+          </button>
         </header>
 
         <div className="bg-dashboard-card rounded-2xl border border-gray-800 shadow-xl overflow-hidden">
@@ -164,12 +178,19 @@ const MyPortfolioPage = () => {
 
         {/* --- INJECT MODALS --- */}
 
+        {/* Add Modal */}
+        <AddAssetModal 
+          isOpen={isAddModalOpen} 
+          onClose={() => setIsAddModalOpen(false)} 
+          onAssetAdded={handleDataRefresh} 
+        />
+
         {/* Edit Modal */}
         <EditAssetModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           holding={selectedHolding}
-          onUpdateSuccess={handleUpdateSuccess}
+          onUpdateSuccess={handleDataRefresh}
         />
 
         {/* Delete Confirmation Modal */}
