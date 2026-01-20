@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
+import MyPortfolioPage from './pages/MyPortfolioPage';
 
 function App() {
   return (
@@ -12,8 +13,9 @@ function App() {
         
         <Route path="/login" element={<LoginPage />} />
         
-        {/* In future we are going to protect this route, we cannot acces it without token*/}
         <Route path="/dashboard" element={<DashboardPage />} />
+
+        <Route path="/portfolio" element={<MyPortfolioPage />} />
       </Routes>
     </Router>
   );

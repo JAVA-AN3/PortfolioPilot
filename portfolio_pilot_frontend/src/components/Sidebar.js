@@ -1,15 +1,22 @@
 import React from 'react';
 import { LayoutDashboard, Wallet, LineChart, Settings, User } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-// Helper intern doar pentru acest fisier
-const SidebarItem = ({ icon, text, active }) => (
-  <div className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 group ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+// Helper component updated to handle clicks
+const SidebarItem = ({ icon, text, active, onClick }) => (
+  <div 
+    onClick={onClick} // Add click handler
+    className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all duration-200 group ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/25' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}
+  >
     {icon}
     <span className="font-medium">{text}</span>
   </div>
 );
 
 const Sidebar = () => {
+  const location = useLocation(); // Gets current URL
+  const navigate = useNavigate(); // Allows us to change URL
+
   return (
     <aside className="w-64 bg-dashboard-card flex flex-col border-r border-gray-800 hidden md:flex h-full">
       <div className="p-6 flex items-center gap-2">
@@ -20,8 +27,22 @@ const Sidebar = () => {
       </div>
 
       <nav className="flex-1 px-4 py-4 space-y-2">
-        <SidebarItem icon={<LayoutDashboard size={20} />} text="Dashboard" active />
-        <SidebarItem icon={<Wallet size={20} />} text="My Portfolio" />
+        {/* Dashboard Link */}
+        <SidebarItem 
+            icon={<LayoutDashboard size={20} />} 
+            text="Dashboard" 
+            active={location.pathname === '/dashboard'} 
+            onClick={() => navigate('/dashboard')}
+        />
+        
+        {/* Portfolio Link */}
+        <SidebarItem 
+            icon={<Wallet size={20} />} 
+            text="My Portfolio" 
+            active={location.pathname === '/portfolio'} 
+            onClick={() => navigate('/portfolio')}
+        />
+        
         <SidebarItem icon={<LineChart size={20} />} text="Market" />
         <SidebarItem icon={<Settings size={20} />} text="Settings" />
       </nav>

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 
 public class HoldingDTO {
     
+    private Long id;
     private String ticker;
     private Integer quantity;
     private BigDecimal averagePrice;
@@ -20,12 +21,15 @@ public class HoldingDTO {
     private String warning;
 
     // Constructor, Getters and Setters
-    public HoldingDTO(String ticker, Integer quantity, BigDecimal averagePrice) {
+    public HoldingDTO(Long id,String ticker, Integer quantity, BigDecimal averagePrice) {
+        this.id = id;
         this.ticker = ticker;
         this.quantity = quantity;
         this.averagePrice = averagePrice;
     }
 
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
     public String getTicker() { return ticker; }
     public void setTicker(String ticker) { this.ticker = ticker; }
     public Integer getQuantity() { return quantity; }

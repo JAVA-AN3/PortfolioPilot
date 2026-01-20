@@ -3,6 +3,7 @@ package com.java.project.portfolio_pilot.service;
 import com.java.project.portfolio_pilot.dto.AddHoldingRequestDTO;
 import com.java.project.portfolio_pilot.dto.HoldingDTO;
 import com.java.project.portfolio_pilot.dto.PortfolioDashboardDTO;
+import com.java.project.portfolio_pilot.dto.UpdateHoldingDTO;
 import com.java.project.portfolio_pilot.model.Holding;
 import com.java.project.portfolio_pilot.model.Portfolio;
 import com.java.project.portfolio_pilot.model.User;
@@ -90,7 +91,7 @@ public class PortfolioService {
 
         // 1. Individual holding calculation
         for (Holding h : holdings) {
-            HoldingDTO dto = new HoldingDTO(h.getStockTicker(), h.getQuantity(), h.getAverageBuyPrice());
+            HoldingDTO dto = new HoldingDTO(h.getId(), h.getStockTicker(), h.getQuantity(), h.getAverageBuyPrice());
 
             // Fetches live price (external API call)
             BigDecimal currentPrice = stockMarketService.getStockPrice(h.getStockTicker());
@@ -185,5 +186,41 @@ public class PortfolioService {
         logger.info("Successfully added {} shares of {} to user {}'s portfolio",
             request.getQuantity(), request.getTicker(), username
         );
+    }
+
+    /**
+     * Updates an existing holding.
+     * Implements a "partial update" strategy: only non-null fields from the DTO
+     * are applied to the entity. This allows the frontend to update just the quantity
+     * without sending the price, or vice-versa.
+     * * @param holdingId The ID of the holding to update
+     * @param request The data to update
+     */
+    @Transactional
+    public void updateHolding(Long holdingId, UpdateHoldingDTO request) {
+        Holding holding = holdingRepository.findById(holdingId)
+                .orElseThrow(() -> new RuntimeException("Holding not found"));
+
+        // Update only if values are provided (not null)
+        if (request.getQuantity() != null) {
+            holding.setQuantity(request.getQuantity());
+        }
+        if (request.getAveragePrice() != null) {
+            holding.setAverageBuyPrice(request.getAveragePrice());
+        }
+
+        holdingRepository.save(holding);
+    }
+
+    /**
+     * Hard deletes a holding from the database.
+     * * @param holdingId The ID of the holding to remove
+     */
+    @Transactional
+    public void deleteHolding(Long holdingId) {
+        if (!holdingRepository.existsById(holdingId)) {
+            throw new RuntimeException("Holding not found");
+        }
+        holdingRepository.deleteById(holdingId);
     }
 }

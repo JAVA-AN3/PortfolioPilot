@@ -3,11 +3,10 @@ package com.java.project.portfolio_pilot.controller;
 import com.java.project.portfolio_pilot.dto.PortfolioDashboardDTO;
 import com.java.project.portfolio_pilot.service.PortfolioService;
 import com.java.project.portfolio_pilot.dto.AddHoldingRequestDTO;
+import com.java.project.portfolio_pilot.dto.UpdateHoldingDTO;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @RestController
@@ -48,6 +47,24 @@ public class PortfolioController {
         
         // Delegate to service
         portfolioService.addHoldingToPortfolio(currentUsername, request);
+    }
+
+    /**
+     * Endpoint to update an existing investment.
+     * PUT /api/portfolios/holdings/{id}
+     */
+    @PutMapping("/holdings/{id}")
+    public void updateHolding(@PathVariable Long id, @RequestBody UpdateHoldingDTO request) {
+        portfolioService.updateHolding(id, request);
+    }
+
+    /**
+     * Endpoint to delete an investment.
+     * DELETE /api/portfolios/holdings/{id}
+     */
+    @DeleteMapping("/holdings/{id}")
+    public void deleteHolding(@PathVariable Long id) {
+        portfolioService.deleteHolding(id);
     }
     
 }
