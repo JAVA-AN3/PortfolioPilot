@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
-import StatCard from "../components/StatCard";
-import AddAssetModal from "../components/AddAssetModal";
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import StatCard from '../components/StatCard';
+import AddAssetModal from '../components/AddAssetModal';
 import PortfolioChart from '../components/PortfolioChart';
 
 /**
@@ -17,6 +17,7 @@ const HoldingItem = ({
   value,
   profit,
   profitPercent,
+  onClick
 }) => {
   // Determine color based on profit (Green for +, Red for -)
   const isProfitable = profit >= 0;
@@ -24,7 +25,10 @@ const HoldingItem = ({
   const profitSign = isProfitable ? "+" : "";
 
   return (
-    <div className="flex justify-between items-center p-4 hover:bg-gray-800/50 rounded-lg transition border-b border-gray-800/50 last:border-0">
+    <div 
+      onClick={onClick} // Executa functia cand dai click
+      className="flex justify-between items-center p-4 hover:bg-gray-700/50 cursor-pointer rounded-lg transition border-b border-gray-800/50 last:border-0 group"
+    >
       <div className="flex items-center gap-4">
         {/* Ticker Avatar */}
         <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white shadow-md">
@@ -114,9 +118,14 @@ const DashboardPage = () => {
     fetchPortfolioData();
   };
 
+  // Handle click on holding
+  const handleHoldingClick = (ticker) => {
+    navigate('/portfolio', { state: { highlightTicker: ticker } });
+  };
+
   // --- RENDER HELPERS ---
 
-  if (loading) {
+  if (loading && !portfolio) {
     return (
       <div className="h-screen bg-dashboard-main flex items-center justify-center text-white">
         Loading Financial Data...
@@ -211,6 +220,7 @@ const DashboardPage = () => {
                       value={holding.marketValue}
                       profit={holding.totalProfitLoss}
                       profitPercent={holding.profitLossPercentage}
+                      onClick={() => handleHoldingClick(holding.ticker)}
                     />
                   ))
                 )}

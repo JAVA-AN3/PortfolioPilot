@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import EditAssetModal from "../components/EditAssetModal";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
-import AddAssetModal from '../components/AddAssetModal';
+import AddAssetModal from "../components/AddAssetModal";
 import { Trash2, Edit2, Plus } from "lucide-react";
 
 const MyPortfolioPage = () => {
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Hook to read data from Dashboard
+  const location = useLocation();
+  const highlightTicker = location.state?.highlightTicker;
 
   // --- EDIT MODAL STATE ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -39,6 +44,25 @@ const MyPortfolioPage = () => {
   useEffect(() => {
     fetchHoldings();
   }, []);
+
+  // --- AUTO-SCROLL & HIGHLIGHT EFFECT ---
+  useEffect(() => {
+    if (!loading && highlightTicker && holdings.length > 0) {
+      const element = document.getElementById(`holding-row-${highlightTicker}`);
+
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        element.classList.add("bg-blue-600/20");
+        element.classList.add("transition-colors");
+        element.classList.add("duration-1000");
+
+        setTimeout(() => {
+          element.classList.remove("bg-blue-600/20");
+        }, 2000);
+      }
+    }
+  }, [loading, highlightTicker, holdings]);
 
   // --- HANDLERS ---
 
@@ -94,10 +118,12 @@ const MyPortfolioPage = () => {
         <header className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white">My Portfolio</h1>
-            <p className="text-gray-400 mt-2">Manage your assets and track performance detail.</p>
+            <p className="text-gray-400 mt-2">
+              Manage your assets and track performance detail.
+            </p>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setIsAddModalOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-lg shadow-blue-500/20 flex items-center gap-2"
           >
@@ -121,7 +147,11 @@ const MyPortfolioPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-800">
               {holdings.map((holding, index) => (
-                <tr key={index} className="hover:bg-gray-800/30 transition">
+                <tr
+                  key={index}
+                  id={`holding-row-${holding.ticker}`}
+                  className="hover:bg-gray-800/30 transition border-l-4 border-transparent hover:border-blue-500"
+                >
                   <td className="p-4 font-bold text-white flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs font-bold">
                       {holding.ticker[0]}
@@ -148,15 +178,12 @@ const MyPortfolioPage = () => {
                     </span>
                   </td>
                   <td className="p-4 text-right space-x-2">
-                    {/* EDIT BUTTON */}
                     <button
                       onClick={() => handleEditClick(holding)}
                       className="p-2 hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition"
                     >
                       <Edit2 size={16} />
                     </button>
-
-                    {/* DELETE BUTTON */}
                     <button
                       onClick={() => initiateDelete(holding)}
                       className="p-2 hover:bg-red-900/30 rounded-lg text-gray-400 hover:text-red-400 transition"
@@ -171,7 +198,7 @@ const MyPortfolioPage = () => {
 
           {holdings.length === 0 && !loading && (
             <div className="text-center py-12 text-gray-500">
-              No holdings found. Go to Dashboard to add some investments.
+              No holdings found. Click "New Investment" to start.
             </div>
           )}
         </div>
@@ -179,10 +206,10 @@ const MyPortfolioPage = () => {
         {/* --- INJECT MODALS --- */}
 
         {/* Add Modal */}
-        <AddAssetModal 
-          isOpen={isAddModalOpen} 
-          onClose={() => setIsAddModalOpen(false)} 
-          onAssetAdded={handleDataRefresh} 
+        <AddAssetModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onAssetAdded={handleDataRefresh}
         />
 
         {/* Edit Modal */}
