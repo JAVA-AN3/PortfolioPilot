@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import MyPortfolioPage from './pages/MyPortfolioPage';
+import MarketPage from './pages/MarketPage';
 
 function App() {
   return (
@@ -16,6 +17,8 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
 
         <Route path="/portfolio" element={<MyPortfolioPage />} />
+
+        <Route path="/market" element={<MarketPage />} />
       </Routes>
     </Router>
   );

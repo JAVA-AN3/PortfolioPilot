@@ -43,7 +43,12 @@ const Sidebar = () => {
             onClick={() => navigate('/portfolio')}
         />
         
-        <SidebarItem icon={<LineChart size={20} />} text="Market" />
+        <SidebarItem 
+            icon={<LineChart size={20} />}
+            text="Market" 
+            active={location.pathname === '/market'} 
+            onClick={() => navigate('/market')}
+        />
         <SidebarItem icon={<Settings size={20} />} text="Settings" />
       </nav>
 
