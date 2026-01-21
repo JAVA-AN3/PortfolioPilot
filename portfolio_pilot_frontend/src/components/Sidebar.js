@@ -1,7 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Wallet, LineChart, Settings, User, Zap } from 'lucide-react'; // Am adăugat Zap
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import { LogOut } from 'lucide-react';
 const SidebarItem = ({ icon, text, active, onClick }) => (
   <div 
     onClick={onClick}
@@ -15,6 +15,10 @@ const SidebarItem = ({ icon, text, active, onClick }) => (
 const Sidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const handleLogout = () => {
+    localStorage.removeItem('jwtToken'); // Delete tokenul JWT from localStorage
+    window.location.href = '/login'; // Redirect to login page
+};
 
   return (
     <aside className="w-64 bg-dashboard-card flex flex-col border-r border-gray-800 hidden md:flex h-full">
@@ -64,16 +68,22 @@ const Sidebar = () => {
         />
       </nav>
 
-      <div className="p-4 border-t border-gray-800">
-        <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 cursor-pointer transition">
-          <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-dashboard-accent">
-            <User size={20} />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-white">Investitorul Nr1</p>
-            <p className="text-xs text-dashboard-muted">Pro Plan</p>
-          </div>
-        </div>
+     <div className="p-4 border-t border-gray-800 space-y-2">
+  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800 cursor-pointer transition group">
+    <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center text-dashboard-accent">
+      <User size={20} />
+    </div>
+    <div className="flex-1">
+      <p className="text-sm font-medium text-white">Investitor</p>
+      <p className="text-xs text-dashboard-muted">Free Plan</p>
+    </div>
+  </div>
+  <button 
+    onClick={handleLogout}
+    className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/10 rounded-xl transition-colors"
+  >
+    <LogOut size={18} /> Logout
+  </button>
       </div>
     </aside>
   );
