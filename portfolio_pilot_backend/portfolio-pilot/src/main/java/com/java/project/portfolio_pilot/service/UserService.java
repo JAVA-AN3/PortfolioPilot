@@ -1,11 +1,11 @@
 package com.java.project.portfolio_pilot.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.java.project.portfolio_pilot.dto.UserRegistrationDTO;
 import com.java.project.portfolio_pilot.model.User;
 import com.java.project.portfolio_pilot.repository.UserRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import org.springframework.stereotype.Service;
 
 @Service // Essential: Tells Spring this class holds business logic
 public class UserService {
@@ -49,4 +49,18 @@ public class UserService {
         // This is where the magic happens. .save() does the INSERT SQL.
         return userRepository.save(newUser);
     }
+
+    public void updatePassword(String username, String oldPassword, String newPassword) {
+    User user = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+    // Verify current password
+    if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+        throw new RuntimeException("Current password is incorrect!");
+    }
+
+    // Crypt and update to new password
+    user.setPassword(passwordEncoder.encode(newPassword));
+    userRepository.save(user);
+}
 }

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom'; // Hook for navigation
 import axios from 'axios';
 import { Lock, User, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
@@ -108,9 +109,12 @@ const LoginPage = () => {
 
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account? <span className="text-blue-400 cursor-pointer hover:underline">Create one</span>
-        </p>
+      <p className="text-center text-sm text-gray-500 mt-6">
+  Don't have an account?{' '}
+  <Link to="/register" className="text-blue-400 cursor-pointer hover:underline">
+    Create one
+  </Link>
+</p>
       </div>
     </div>
   );

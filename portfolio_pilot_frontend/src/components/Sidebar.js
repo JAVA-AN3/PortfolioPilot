@@ -1,6 +1,7 @@
 import React from 'react';
 import { LayoutDashboard, Wallet, LineChart, Settings, User } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 // Helper component updated to handle clicks
 const SidebarItem = ({ icon, text, active, onClick }) => (
@@ -49,7 +50,9 @@ const Sidebar = () => {
             active={location.pathname === '/market'} 
             onClick={() => navigate('/market')}
         />
-        <SidebarItem icon={<Settings size={20} />} text="Settings" />
+        <Link to="/settings">
+  <SidebarItem icon={<Settings size={20} />} text="Settings" />
+</Link>
       </nav>
 
       <div className="p-4 border-t border-gray-800">

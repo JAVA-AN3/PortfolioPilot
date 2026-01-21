@@ -4,6 +4,8 @@ import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import MyPortfolioPage from './pages/MyPortfolioPage';
 import MarketPage from './pages/MarketPage';
+import RegisterPage from './pages/RegisterPage';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -19,6 +21,10 @@ function App() {
         <Route path="/portfolio" element={<MyPortfolioPage />} />
 
         <Route path="/market" element={<MarketPage />} />
+
+        <Route path="/register" element={<RegisterPage />} />
+        
+        <Route path="/settings" element={<SettingsPage />} />
       </Routes>
     </Router>
   );
