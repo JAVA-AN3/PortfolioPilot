@@ -6,6 +6,7 @@ import MyPortfolioPage from './pages/MyPortfolioPage';
 import MarketPage from './pages/MarketPage';
 import RegisterPage from './pages/RegisterPage';
 import SettingsPage from './pages/SettingsPage';
+import SubscriptionPage from './pages/SubscriptionPage';
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         
         <Route path="/settings" element={<SettingsPage />} />
+
+        <Route path="/subscription" element={<SubscriptionPage />} />
       </Routes>
     </Router>
   );
