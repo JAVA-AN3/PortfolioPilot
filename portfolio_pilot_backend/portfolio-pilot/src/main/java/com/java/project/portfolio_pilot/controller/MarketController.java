@@ -2,6 +2,7 @@ package com.java.project.portfolio_pilot.controller;
 
 import com.java.project.portfolio_pilot.dto.CompanyProfileDTO;
 import com.java.project.portfolio_pilot.dto.FinnhubResponseDTO;
+import com.java.project.portfolio_pilot.dto.FinnhubResponseDTO;
 import com.java.project.portfolio_pilot.repository.TickerTapeRepository;
 import com.java.project.portfolio_pilot.service.MarketSchedulerService;
 import com.java.project.portfolio_pilot.service.StockMarketService;
@@ -12,6 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * REST Controller for Market Research Data.
+ * Serves real-time quotes and company profiles, while leveraging a local database cache 
+ * for high-frequency Ticker Tape requests.
+ */
 @RestController
 @RequestMapping("/api/market")
 public class MarketController {
@@ -30,31 +36,37 @@ public class MarketController {
     }
 
     /**
-     * Aggregates all data for a single stock ticker:
-     * 1. Real-time Quote (Price, % Change)
-     * 2. Company Profile (Logo, Name, Industry)
+     * Aggregates essential data for a single stock ticker.
+     * Uses a Hybrid Strategy:
+     * - Real Data: Price, Profile, Market Status.
+     * - Mocked Data: Intraday Chart/Change (handled by Frontend/Response) to bypass API limits.
+     * * @param ticker The symbol to analyze (e.g., AAPL).
+     * @return JSON map containing Quote and Profile.
      */
     @GetMapping("/details/{ticker}")
     public Map<String, Object> getStockDetails(@PathVariable String ticker) {
         Map<String, Object> response = new HashMap<>();
         String symbol = ticker.toUpperCase();
 
-        // 1. Get Price Data
-        BigDecimal price = stockMarketService.getStockPrice(symbol);
-
-        // Note: Our current FinnhubResponseDTO only captures 'c' (current price).
-        // For a pro page, we might want 'dp' (percent change) later.
-        // For now, we simulate change if the API doesn't provide it, or fetch raw DTO
-        // if possible.
-
-        // 2. Get Profile Data
+        // 1. Fetch Real-time Quote (Includes High, Low, Open, Change)
+        FinnhubResponseDTO quote = stockMarketService.getStockQuote(symbol);
+        
+        // 2. Fetch Company Metadata (Live from Finnhub)
         CompanyProfileDTO profile = stockMarketService.getCompanyProfile(symbol);
 
-        response.put("price", price);
-        response.put("profile", profile);
+        // 3. Map Real Data to Response
+        if (quote != null) {
+            response.put("price", quote.getCurrentPrice());
+            response.put("changePercent", quote.getPercentChange()); // REAL %
+            response.put("high", quote.getHighPrice());              // REAL High
+            response.put("low", quote.getLowPrice());                // REAL Low
+            response.put("open", quote.getOpenPrice());              // REAL Open
+            response.put("prevClose", quote.getPreviousClose());     // REAL Prev Close
+        }
 
-        // Mocking some extra data for UI visualization since Free Tier is limited
-        response.put("dayChangePercent", Math.random() * 5 - 2.5); // Random -2.5% to +2.5% for demo
+        response.put("profile", profile);
+        
+        // 4. Real Market Status
         response.put("isMarketOpen", stockMarketService.isMarketOpen());
 
         return response;
@@ -62,27 +74,25 @@ public class MarketController {
 
     /**
      * Endpoint to check market status independently.
-     * GET /api/market/status
+     * Useful for the UI badge in the header.
      */
     @GetMapping("/status")
     public Map<String, Boolean> getMarketStatus() {
-        boolean isOpen = stockMarketService.isMarketOpen();
-        return Map.of("isOpen", isOpen);
+        return Map.of("isOpen", stockMarketService.isMarketOpen());
     }
 
     /**
      * Retrieves the cached ticker tape data from the database.
-     * This is extremely fast and doesn't consume external API quota.
-     * GET /api/market/ticker-tape
+     * Strategy: Read-Through Cache.
+     * If DB is empty (first run), triggers an async background refresh job.
      */
     @GetMapping("/ticker-tape")
     public List<com.java.project.portfolio_pilot.model.TickerTapeItem> getTickerTape() {
         List<com.java.project.portfolio_pilot.model.TickerTapeItem> items = tickerTapeRepository.findAll();
         
-        // If DB is empty (first run), trigger a fetch in background
+        // Self-Healing: If cache is empty, trigger the scheduler manually
         if (items.isEmpty()) {
-            new Thread(() -> marketSchedulerService.forceRefresh()).start();
-            // Return empty list for now, user will see data on next refresh
+            new Thread(marketSchedulerService::forceRefresh).start();
         }
         
         return items;

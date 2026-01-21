@@ -4,47 +4,55 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 
 /**
- * Data Transfer Object (DTO) for handling responses from the Finnhub API.
- * 
- * We use DTOs to decouple our internal domain model from external API
- * structures.
- * This prevents changes in the external API from breaking our core logic
- * directly.
+ * Data Transfer Object (DTO) for handling responses from the Finnhub Quote API.
+ * Maps the cryptic single-letter JSON fields to readable Java properties.
  */
 public class FinnhubResponseDTO {
 
-    /**
-     * The current price of the stock.
-     * 
-     * The Finnhub API returns this data in a field named simply "c".
-     * While concise, "c" is not descriptive for our codebase.
-     * 
-     * We use the {@code @JsonProperty("c")} annotation to tell the Jackson library:
-     * "When you see 'c' in the incoming JSON, map it to this 'currentPrice'
-     * variable."
-     */
+    // 'c' = Current Price
     @JsonProperty("c")
     private BigDecimal currentPrice;
 
+    // 'dp' = Percent Change (Daily)
     @JsonProperty("dp")
     private BigDecimal percentChange;
+
+    // 'h' = High Price of the day
+    @JsonProperty("h")
+    private BigDecimal highPrice;
+
+    // 'l' = Low Price of the day
+    @JsonProperty("l")
+    private BigDecimal lowPrice;
+
+    // 'o' = Open Price of the day
+    @JsonProperty("o")
+    private BigDecimal openPrice;
+
+    // 'pc' = Previous Close Price
+    @JsonProperty("pc")
+    private BigDecimal previousClose;
 
     public FinnhubResponseDTO() {
     }
 
-    public BigDecimal getCurrentPrice() {
-        return currentPrice;
-    }
+    // --- Getters & Setters ---
 
-    public void setCurrentPrice(BigDecimal currentPrice) {
-        this.currentPrice = currentPrice;
-    }
+    public BigDecimal getCurrentPrice() { return currentPrice; }
+    public void setCurrentPrice(BigDecimal currentPrice) { this.currentPrice = currentPrice; }
 
-    public BigDecimal getPercentChange() {
-        return percentChange;
-    }
+    public BigDecimal getPercentChange() { return percentChange; }
+    public void setPercentChange(BigDecimal percentChange) { this.percentChange = percentChange; }
 
-    public void setPercentChange(BigDecimal percentChange) {
-        this.percentChange = percentChange;
-    }
+    public BigDecimal getHighPrice() { return highPrice; }
+    public void setHighPrice(BigDecimal highPrice) { this.highPrice = highPrice; }
+
+    public BigDecimal getLowPrice() { return lowPrice; }
+    public void setLowPrice(BigDecimal lowPrice) { this.lowPrice = lowPrice; }
+
+    public BigDecimal getOpenPrice() { return openPrice; }
+    public void setOpenPrice(BigDecimal openPrice) { this.openPrice = openPrice; }
+
+    public BigDecimal getPreviousClose() { return previousClose; }
+    public void setPreviousClose(BigDecimal previousClose) { this.previousClose = previousClose; }
 }

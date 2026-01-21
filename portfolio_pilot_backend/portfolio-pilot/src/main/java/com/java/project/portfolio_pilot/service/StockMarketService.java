@@ -4,7 +4,6 @@ import java.time.DayOfWeek;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.LocalTime;
-import java.util.Set;
 import java.time.LocalDate;
 import java.time.Month;
 import com.java.project.portfolio_pilot.dto.FinnhubResponseDTO;
@@ -36,31 +35,30 @@ public class StockMarketService {
     }
 
     /**
-     * Fetches the current stock price for a given ticker symbol.
-     *
-     * @param symbol The stock ticker symbol (e.g., "AAPL").
-     * @return The current price as a BigDecimal, or BigDecimal.ZERO if the fetch
-     *         fails.
+     * Fetches the COMPLETE quote object (Price, Open, High, Low, Change).
+     * This allows the frontend to display detailed statistics.
+     * * @param symbol The ticker symbol.
+     * @return FinnhubResponseDTO containing all price metrics.
      */
-    public BigDecimal getStockPrice(String symbol) {
-        // Construct the query URL.
-        String finalUrl = apiUrl + "?symbol=" + symbol + "&token=" + apiKey;
+    public FinnhubResponseDTO getStockQuote(String symbol) {
+        // Ensure URL is clean (remove /quote if it exists in properties to avoid duplication)
+        String baseUrl = apiUrl.replace("/quote", "");
+        String url = baseUrl + "/quote?symbol=" + symbol + "&token=" + apiKey;
 
         try {
-            // Execute the GET request to the external provider
-            FinnhubResponseDTO response = restTemplate.getForObject(finalUrl, FinnhubResponseDTO.class);
-
-            if (response != null && response.getCurrentPrice() != null) {
-                return response.getCurrentPrice();
-            } else {
-                throw new RuntimeException("Failed to retrieve price data for symbol: " + symbol);
-            }
+            return restTemplate.getForObject(url, FinnhubResponseDTO.class);
         } catch (Exception e) {
-            // Log the error and return a fallback value to prevent cascading failures in
-            // the calling service.
-            System.err.println("External API error: " + e.getMessage());
-            return BigDecimal.ZERO;
+            System.err.println("Error fetching full quote for " + symbol + ": " + e.getMessage());
+            return null;
         }
+    }
+
+    /**
+     * Legacy method for getting just the price (wraps the new method).
+     */
+    public BigDecimal getStockPrice(String symbol) {
+        FinnhubResponseDTO quote = getStockQuote(symbol);
+        return (quote != null && quote.getCurrentPrice() != null) ? quote.getCurrentPrice() : BigDecimal.ZERO;
     }
 
     /**
