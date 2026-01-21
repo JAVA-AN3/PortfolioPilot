@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TickerTape from "../components/TickerTape";
 import {
@@ -31,6 +32,7 @@ import {
  * Chart remains mocked for visual trend representation on Free Tier.
  */
 const MarketPage = () => {
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [stockData, setStockData] = useState(null);
@@ -124,26 +126,27 @@ const MarketPage = () => {
     return points;
   };
 
-  // --- SEARCH HANDLER ---
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchTerm) return;
+  // --- REUSABLE FETCH FUNCTION ---
+  // We wrap this in useCallback so we can use it in useEffect
+  const fetchStockData = useCallback(async (symbol) => {
+    if (!symbol) return;
 
     setLoading(true);
     setError("");
     setStockData(null);
+    setSearchTerm(symbol); // Sync input box
 
     try {
       const token = localStorage.getItem("jwtToken");
       const response = await axios.get(
-        `http://localhost:8080/api/market/details/${searchTerm}`,
+        `http://localhost:8080/api/market/details/${symbol}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
 
       if (!response.data.price || response.data.price === 0) {
-        setError(`Ticker symbol "${searchTerm.toUpperCase()}" not found.`);
+        setError(`Ticker symbol "${symbol.toUpperCase()}" not found.`);
       } else {
         setStockData(response.data);
       }
@@ -153,6 +156,23 @@ const MarketPage = () => {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // --- AUTO-SEARCH EFFECT ---
+  // Checks if we arrived here with a ticker in the state (from Portfolio Page)
+  useEffect(() => {
+    if (location.state?.searchTicker) {
+      fetchStockData(location.state.searchTicker);
+
+      // Clean up state so refresh doesn't re-trigger weirdly (optional but good practice)
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, fetchStockData]);
+
+  // --- FORM SUBMIT HANDLER ---
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchStockData(searchTerm);
   };
 
   const isEtfOrFund = (data) => {
@@ -207,7 +227,7 @@ const MarketPage = () => {
           {/* SEARCH */}
           <div className="w-full max-w-3xl mx-auto mb-12">
             <form
-              onSubmit={handleSearch}
+              onSubmit={handleSearchSubmit}
               className="flex gap-2 bg-dashboard-card p-2 rounded-2xl border border-gray-700 shadow-xl focus-within:ring-2 focus-within:ring-blue-600 transition-all"
             >
               <div className="flex-1 flex items-center px-4">

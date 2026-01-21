@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import EditAssetModal from "../components/EditAssetModal";
 import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import AddAssetModal from "../components/AddAssetModal";
-import { Trash2, Edit2, Plus } from "lucide-react";
+import { Trash2, Edit2, Plus, TrendingUp } from "lucide-react";
 
 const MyPortfolioPage = () => {
   const [holdings, setHoldings] = useState([]);
@@ -14,6 +15,9 @@ const MyPortfolioPage = () => {
   // Hook to read data from Dashboard
   const location = useLocation();
   const highlightTicker = location.state?.highlightTicker;
+
+  // To redirect you to Market page
+  const navigate = useNavigate();
 
   // --- EDIT MODAL STATE ---
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -109,6 +113,12 @@ const MyPortfolioPage = () => {
     setIsEditModalOpen(true);
   };
 
+  // --- Holding click redirects to Market page
+  const handleTickerClick = (ticker) => {
+    // Navigate to /market and pass the ticker in the "state" object
+    navigate('/market', { state: { searchTicker: ticker } });
+  };
+
   // --- RENDER ---
   return (
     <div className="flex h-screen bg-dashboard-main text-dashboard-text font-sans">
@@ -147,17 +157,21 @@ const MyPortfolioPage = () => {
             </thead>
             <tbody className="divide-y divide-gray-800">
               {holdings.map((holding, index) => (
-                <tr
-                  key={index}
-                  id={`holding-row-${holding.ticker}`}
-                  className="hover:bg-gray-800/30 transition border-l-4 border-transparent hover:border-blue-500"
-                >
-                  <td className="p-4 font-bold text-white flex items-center gap-3">
-                    <div className="w-8 h-8 rounded bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs font-bold">
-                      {holding.ticker[0]}
+                <tr key={index} className="hover:bg-gray-800/30 transition group">
+                  
+                  {/* 4. CLICKABLE TICKER CELL */}
+                  <td 
+                    onClick={() => handleTickerClick(holding.ticker)} 
+                    className="p-4 font-bold text-white flex items-center gap-3 cursor-pointer hover:text-blue-400 transition-colors"
+                    title="Analyze in Market Page"
+                  >
+                    <div className="w-8 h-8 rounded bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs font-bold group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        {holding.ticker[0]}
                     </div>
                     {holding.ticker}
+                    <TrendingUp size={14} className="opacity-0 group-hover:opacity-100 text-blue-500 transition-opacity" />
                   </td>
+
                   <td className="p-4 text-gray-300">{holding.quantity}</td>
                   <td className="p-4 text-gray-300">
                     ${holding.averagePrice?.toLocaleString()}
