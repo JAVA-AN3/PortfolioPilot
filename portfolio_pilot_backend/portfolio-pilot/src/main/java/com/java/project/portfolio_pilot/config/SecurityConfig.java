@@ -87,7 +87,10 @@ public class SecurityConfig {
             // Define authorization rules for specific HTTP endpoints
             .authorizeHttpRequests(auth -> auth
                 // Allow unauthenticated access to Auth endpoints (Login/Register)
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+
+                // Allow unauthenticated access to Password Reset endpoints (Forgot/Reset)
+                .requestMatchers("/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                 
                 // Require authentication for Market Research endpoints
                 .requestMatchers("/api/market/**").authenticated()
