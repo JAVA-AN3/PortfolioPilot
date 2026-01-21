@@ -14,6 +14,25 @@ const MarketPage = () => {
   const [loading, setLoading] = useState(false);
   const [stockData, setStockData] = useState(null);
   const [error, setError] = useState('');
+  const [isMarketOpen, setIsMarketOpen] = useState(null);
+
+  // --- EFFECT: Check Market Status on Load ---
+  React.useEffect(() => {
+    const fetchMarketStatus = async () => {
+      try {
+        const token = localStorage.getItem('jwtToken');
+        const response = await axios.get('http://localhost:8080/api/market/status', {
+             headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        setIsMarketOpen(response.data.isOpen);
+      } catch (e) {
+        console.error("Failed to check market status", e);
+        // Fallback default
+        setIsMarketOpen(false);
+      }
+    };
+    fetchMarketStatus();
+  }, []);
 
   // --- HANDLERS ---
   const handleSearch = async (e) => {
@@ -75,10 +94,10 @@ const MarketPage = () => {
             </div>
             
             <div className="flex items-center gap-2 bg-gray-800/80 backdrop-blur-sm px-4 py-2 rounded-full border border-gray-700 shadow-sm">
-              <Clock size={16} className={stockData?.isMarketOpen !== false ? "text-green-400" : "text-orange-400"} />
+              <Clock size={16} className={isMarketOpen ? "text-green-400" : "text-orange-400"} />
               <span className="text-sm font-medium text-white">
-                US Market: <span className={stockData?.isMarketOpen !== false ? "text-green-400 font-bold" : "text-orange-400 font-bold"}>
-                  {stockData?.isMarketOpen !== false ? "OPEN" : "CLOSED"}
+                US Market: <span className={isMarketOpen ? "text-green-400 font-bold" : "text-orange-400 font-bold"}>
+                  {isMarketOpen === null ? "LOADING..." : (isMarketOpen ? "OPEN" : "CLOSED")}
                 </span>
               </span>
             </div>

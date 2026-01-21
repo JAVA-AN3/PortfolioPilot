@@ -48,4 +48,14 @@ public class MarketController {
 
         return response;
     }
+
+    /**
+     * Endpoint to check market status independently.
+     * GET /api/market/status
+     */
+    @GetMapping("/status")
+    public Map<String, Boolean> getMarketStatus() {
+        boolean isOpen = stockMarketService.isMarketOpen();
+        return Map.of("isOpen", isOpen);
+    }
 }

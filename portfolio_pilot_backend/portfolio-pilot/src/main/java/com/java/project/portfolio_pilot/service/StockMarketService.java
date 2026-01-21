@@ -1,5 +1,12 @@
 package com.java.project.portfolio_pilot.service;
 
+import java.time.DayOfWeek;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.LocalTime;
+import java.util.Set;
+import java.time.LocalDate;
+import java.time.Month;
 import com.java.project.portfolio_pilot.dto.FinnhubResponseDTO;
 import com.java.project.portfolio_pilot.dto.CompanyProfileDTO;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,7 +23,8 @@ public class StockMarketService {
 
     private final RestTemplate restTemplate;
 
-    // Injecting configuration values from application.properties for flexibility and security
+    // Injecting configuration values from application.properties for flexibility
+    // and security
     @Value("${finnhub.api.url}")
     private String apiUrl;
 
@@ -31,7 +39,8 @@ public class StockMarketService {
      * Fetches the current stock price for a given ticker symbol.
      *
      * @param symbol The stock ticker symbol (e.g., "AAPL").
-     * @return The current price as a BigDecimal, or BigDecimal.ZERO if the fetch fails.
+     * @return The current price as a BigDecimal, or BigDecimal.ZERO if the fetch
+     *         fails.
      */
     public BigDecimal getStockPrice(String symbol) {
         // Construct the query URL.
@@ -47,9 +56,10 @@ public class StockMarketService {
                 throw new RuntimeException("Failed to retrieve price data for symbol: " + symbol);
             }
         } catch (Exception e) {
-            // Log the error and return a fallback value to prevent cascading failures in the calling service.
+            // Log the error and return a fallback value to prevent cascading failures in
+            // the calling service.
             System.err.println("External API error: " + e.getMessage());
-            return BigDecimal.ZERO; 
+            return BigDecimal.ZERO;
         }
     }
 
@@ -59,7 +69,7 @@ public class StockMarketService {
      */
     public CompanyProfileDTO getCompanyProfile(String ticker) {
         String url = apiUrl.replace("/quote", "/stock/profile2") + "?symbol=" + ticker + "&token=" + apiKey;
-        
+
         try {
             return restTemplate.getForObject(url, CompanyProfileDTO.class);
         } catch (Exception e) {
@@ -68,16 +78,62 @@ public class StockMarketService {
             return new CompanyProfileDTO();
         }
     }
-    
+
     /**
-     * Checks if the US Market is currently open.
-     * Finnhub has a specific endpoint for this, but to save API calls on the free tier,
-     * we will determine this via simple TimeZone logic in the Frontend or a Mock here.
-     * For "Pro" look, let's return a simple boolean based on server time or a mock.
+     * Determines if the US Stock Market (NYSE/NASDAQ) is currently open.
+     * Logic: Open Mon-Fri, 09:30 AM - 04:00 PM Eastern Time.
+     * Excludes Weekends and simple fixed Holidays.
      */
     public boolean isMarketOpen() {
-        // TODO: Implement complex time-zone logic or API call.
-        // For now, let's assume it's open for testing purposes.
-        return true; 
+        // 1. Get current time in New York (Wall Street time)
+        ZoneId nyZone = ZoneId.of("America/New_York");
+        ZonedDateTime now = ZonedDateTime.now(nyZone);
+
+        // 2. Check for Weekend (Saturday or Sunday)
+        DayOfWeek day = now.getDayOfWeek();
+        if (day == DayOfWeek.SATURDAY || day == DayOfWeek.SUNDAY) {
+            return false;
+        }
+
+        // 3. Check Trading Hours (09:30 - 16:00)
+        LocalTime time = now.toLocalTime();
+        LocalTime marketOpen = LocalTime.of(9, 30);
+        LocalTime marketClose = LocalTime.of(16, 0);
+
+        if (time.isBefore(marketOpen) || time.isAfter(marketClose)) {
+            return false;
+        }
+
+        // 4. Check Major Holidays
+        // This is a simplified list. For a real production app, use a database table or
+        // a dedicated library.
+        if (isHoliday(now.toLocalDate())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Simple hardcoded list of major US Market holidays for 2024-2026 logic.
+     */
+    private boolean isHoliday(LocalDate date) {
+        int year = date.getYear();
+        Month month = date.getMonth();
+        int day = date.getDayOfMonth();
+
+        // New Year's Day (Jan 1)
+        if (month == Month.JANUARY && day == 1)
+            return true;
+        // Independence Day (July 4)
+        if (month == Month.JULY && day == 4)
+            return true;
+        // Christmas (Dec 25)
+        if (month == Month.DECEMBER && day == 25)
+            return true;
+
+        // Add more logic for floating holidays like Thanksgiving/Labor Day if needed
+
+        return false;
     }
 }
