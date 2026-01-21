@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Sidebar from '../components/Sidebar';
 import TickerTape from '../components/TickerTape';
-import { User, Shield, Lock, Mail, Save, AlertCircle } from 'lucide-react';
+import { User, Shield, Lock, Mail, Save, AlertCircle, Edit2 } from 'lucide-react';
 
 const SettingsPage = () => {
     const [user, setUser] = useState({ username: '', email: '' });
+    const [newUsername, setNewUsername] = useState(''); // State for new username
     const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [message, setMessage] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ const SettingsPage = () => {
                 const response = await axios.get('http://localhost:8080/api/users/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                setUser(response.data); // Map updated from Map.of on backend
+                setUser(response.data);
             } catch (err) {
                 console.error("Failed to load user data", err);
             }
@@ -26,6 +27,32 @@ const SettingsPage = () => {
         fetchUserData();
     }, []);
 
+    // --- Update Profile Name ---
+    const updateProfileName = async (e) => {
+        e.preventDefault();
+        if (!newUsername || newUsername === user.username) return;
+
+        setLoading(true);
+        setMessage({ type: '', text: '' });
+        try {
+            const token = localStorage.getItem('jwtToken');
+            await axios.put('http://localhost:8080/api/users/update-profile', 
+                { newUsername }, 
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            
+            // If successful, log the user out to re-login with new username
+            alert("Username changed successfully! Please log in again.");
+            localStorage.removeItem('jwtToken');
+            window.location.href = '/login';
+        } catch (err) {
+            setMessage({ type: 'error', text: err.response?.data || "Error updating username" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- Change Password ---
     const handlePasswordChange = (e) => {
         setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
     };
@@ -42,7 +69,6 @@ const SettingsPage = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem('jwtToken');
-            // We'll create this endpoint next in the Backend
             await axios.put('http://localhost:8080/api/users/change-password', 
                 { 
                     oldPassword: passwordData.currentPassword, 
@@ -61,7 +87,7 @@ const SettingsPage = () => {
 
     return (
         <div className="flex h-screen bg-dashboard-main text-dashboard-text font-sans overflow-hidden">
-            <Sidebar />
+            <Sidebar user={user} />
             <main className="flex-1 flex flex-col relative min-w-0 overflow-x-hidden">
                 <div className="flex-none w-full">
                     <TickerTape />
@@ -81,25 +107,42 @@ const SettingsPage = () => {
                             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                                 <User className="text-blue-500" size={20} /> User Profile
                             </h2>
-                            <div className="space-y-4">
-                                <div>
+                            <div className="space-y-6">
+                                {/* Formular Editare Username */}
+                                <form onSubmit={updateProfileName} className="space-y-2">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Username</label>
-                                    <div className="mt-1 flex items-center gap-3 bg-[#1a1a1a] p-3 rounded-xl border border-gray-800 text-gray-400">
-                                        <User size={18} />
-                                        <span>{user.username}</span>
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Edit2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
+                                            <input 
+                                                type="text" 
+                                                placeholder={user.username}
+                                                className="w-full bg-[#1a1a1a] border border-gray-800 rounded-xl py-2.5 pl-10 pr-4 text-white focus:border-blue-500 outline-none transition-all"
+                                                onChange={(e) => setNewUsername(e.target.value)}
+                                            />
+                                        </div>
+                                        <button 
+                                            type="submit" 
+                                            disabled={loading || !newUsername}
+                                            className="bg-blue-600 px-6 rounded-xl text-white font-bold hover:bg-blue-700 transition disabled:opacity-50 text-sm"
+                                        >
+                                            Save
+                                        </button>
                                     </div>
-                                </div>
+                                </form>
+
                                 <div>
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
-                                    <div className="mt-1 flex items-center gap-3 bg-[#1a1a1a] p-3 rounded-xl border border-gray-800 text-gray-400">
+                                    <div className="mt-1 flex items-center gap-3 bg-[#1a1a1a] p-3 rounded-xl border border-gray-800 text-gray-500 cursor-not-allowed">
                                         <Mail size={18} />
                                         <span>{user.email}</span>
                                     </div>
+                                    <p className="text-[10px] text-gray-600 mt-1 italic">Email cannot be changed for security reasons.</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Security Section */}
+                        {/* Security Section (Change Password) */}
                         <div className="bg-dashboard-card rounded-2xl p-8 border border-gray-800 shadow-xl">
                             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                                 <Lock className="text-blue-500" size={20} /> Change Password

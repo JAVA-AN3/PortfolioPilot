@@ -64,4 +64,17 @@ public ResponseEntity<?> changePassword(
         return ResponseEntity.badRequest().body(e.getMessage());
     }
 }
+
+    //Enpoint to change username
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody Map<String, String> data) {
+        try {
+            userService.updateUsername(userDetails.getUsername(), data.get("newUsername"));
+            return ResponseEntity.ok("Profile updated! Please log in again with your new username.");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+                      }
 }

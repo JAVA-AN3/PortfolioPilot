@@ -50,6 +50,7 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
+    // method to update password
     public void updatePassword(String username, String oldPassword, String newPassword) {
     User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new RuntimeException("User not found"));
@@ -62,5 +63,16 @@ public class UserService {
     // Crypt and update to new password
     user.setPassword(passwordEncoder.encode(newPassword));
     userRepository.save(user);
-}
+                                                                                    }
+
+    // method to update username
+    public void updateUsername(String currentUsername, String newUsername) {
+        if (userRepository.existsByUsername(newUsername)) {
+            throw new RuntimeException("Username already taken!");
+        }
+        User user = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setUsername(newUsername);
+        userRepository.save(user); // Salvăm modificarea în baza de date
+                                                                        }
 }
