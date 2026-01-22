@@ -2,7 +2,7 @@ package com.java.project.portfolio_pilot.model;
 
 import jakarta.persistence.*;
 import java.util.List;
-import java.util.ArrayList; // Importat pentru initializarea listei
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "users")

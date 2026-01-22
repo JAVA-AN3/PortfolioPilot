@@ -41,7 +41,6 @@ public class StockMarketService {
      * @return FinnhubResponseDTO containing all price metrics.
      */
     public FinnhubResponseDTO getStockQuote(String symbol) {
-        // Ensure URL is clean (remove /quote if it exists in properties to avoid duplication)
         String baseUrl = apiUrl.replace("/quote", "");
         String url = baseUrl + "/quote?symbol=" + symbol + "&token=" + apiKey;
 

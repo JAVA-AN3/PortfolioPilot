@@ -80,10 +80,8 @@ public class SecurityConfig {
         http
             // Disable CSRF (Cross-Site Request Forgery) as we are using stateless JWTs, not browser sessions
             .csrf(csrf -> csrf.disable())
-            
             // Enable CORS (Cross-Origin Resource Sharing) using the configuration defined below
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            
             // Define authorization rules for specific HTTP endpoints
             .authorizeHttpRequests(auth -> auth
                 // Allow unauthenticated access to Auth endpoints (Login/Register)
